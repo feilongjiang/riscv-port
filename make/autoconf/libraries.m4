@@ -152,7 +152,6 @@ AC_DEFUN_ONCE([LIB_SETUP_LIBRARIES],
   # Programs which use C11 or C++11 atomics, like #include <atomic>,
   # generally must link against -latomic on RISC-V
   if test "x$OPENJDK_TARGET_OS" = xlinux && test "x$OPENJDK_TARGET_CPU" = xriscv64; then
-    BASIC_JDKLIB_LIBS="$BASIC_JDKLIB_LIBS -latomic"
     BASIC_JVM_LIBS="$BASIC_JVM_LIBS -latomic"
   fi
 
