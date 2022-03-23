@@ -1098,24 +1098,12 @@ void MacroAssembler::push_call_clobbered_registers_except(RegSet exclude) {
   push_reg(RegSet::of(x7) + RegSet::range(x10, x17) + RegSet::range(x28, x31) - exclude, sp);
 
   // Push float registers f0-f7, f10-f17, f28-f31.
-  addi(sp, sp, - wordSize * 20);
-  int offset = 0;
-  for (int i = 0; i < 32; i++) {
-    if (i <= f7->encoding() || i >= f28->encoding() || (i >= f10->encoding() && i <= f17->encoding())) {
-      fsd(as_FloatRegister(i), Address(sp, wordSize * (offset ++)));
-    }
-  }
+  push_fp(FloatRegSet::range(f0, f7) + FloatRegSet::range(f10, f17) + FloatRegSet::range(f28, f31), sp);
 }
 
 void MacroAssembler::pop_call_clobbered_registers_except(RegSet exclude) {
   CompressibleRegion cr(this);
-  int offset = 0;
-  for (int i = 0; i < 32; i++) {
-    if (i <= f7->encoding() || i >= f28->encoding() || (i >= f10->encoding() && i <= f17->encoding())) {
-      fld(as_FloatRegister(i), Address(sp, wordSize * (offset ++)));
-    }
-  }
-  addi(sp, sp, wordSize * 20);
+  pop_fp(FloatRegSet::range(f0, f7) + FloatRegSet::range(f10, f17) + FloatRegSet::range(f28, f31), sp);
 
   pop_reg(RegSet::of(x7) + RegSet::range(x10, x17) + RegSet::range(x28, x31) - exclude, sp);
 }
@@ -1138,10 +1126,7 @@ void MacroAssembler::push_CPU_state(bool save_vectors, int vector_size_in_bytes)
   push_reg(0xffffffe0, sp);
 
   // float registers
-  addi(sp, sp, - 32 * wordSize);
-  for (int i = 0; i < 32; i++) {
-    fsd(as_FloatRegister(i), Address(sp, i * wordSize));
-  }
+  push_fp(0xffffffff, sp);
 
   // vector registers
   if (save_vectors) {
@@ -1166,10 +1151,7 @@ void MacroAssembler::pop_CPU_state(bool restore_vectors, int vector_size_in_byte
   }
 
   // float registers
-  for (int i = 0; i < 32; i++) {
-    fld(as_FloatRegister(i), Address(sp, i * wordSize));
-  }
-  addi(sp, sp, 32 * wordSize);
+  pop_fp(0xffffffff, sp);
 
   // integer registers, except zr(x0) & ra(x1) & sp(x2) & gp(x3) & tp(x4)
   pop_reg(0xffffffe0, sp);
